@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+    <h1>Stock Portfolio</h1>
+    <table style="width: 100%;">
+        <tr>
+            <th>Stock</th>
+            <th>Symbol</th>
+            <th>Number of Shares</th>
+            <th>Current Price</th>
+            <th>Total Value</th>
+        </tr>
+        {% for entry in stock_data %}
+        <tr>
+            <td>{{ entry.name }}</td>
+            <td>{{ entry.stock_symbol }}</td>
+            <td>{{ entry.shares }}</td>
+            <td>{{ entry.usd_price }}</td>
+            <td>{{ entry.total }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <table style="width: 100%;">
+        <tr>
+            <th>Current cash balance</th>
+            <th>Total Net Worth</th>
+        </tr>
+        <tr>
+            <td>{{ cash }}</td>
+            <td>{{ net }}</td>
+        </tr>
+    </table>
+{% endblock %}

@@ -102,7 +102,14 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
+    transactions = db.execute("SELECT * FROM transactions WHERE user_id = :id", id = session.get("user_id"))
+    for entry in transactions:
+        iex_data = lookup(entry["stock_symbol"])
+        entry["name"] = iex_data["name"]
+        entry["stock_symbol"] = entry["stock_symbol"].upper()
+        entry["total_price"] = usd(entry["total_price"])
+
+    return render_template("history.html", transactions = transactions)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -199,7 +206,30 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    stock_data = db.execute("SELECT stock_symbol, SUM(num_shares) FROM transactions WHERE user_id = :id GROUP BY stock_symbol" , id = session["user_id"])
+    for entry in stock_data:
+        entry["shares"] = entry["SUM(num_shares)"]
+        entry["stock_symbol"] = entry["stock_symbol"].upper()
+
+    if request.method == "POST":
+        stock_to_sell = request.form.get("sell")
+        shares_to_sell = request.form.get("shares")
+        if not stock_to_sell:
+            return apology("Please select a stock to sell", 403)
+        elif not shares_to_sell or int(shares_to_sell) < 1:
+            return apology("Please select the number of shares to sell")
+        return apology("not working yet!", 403)
+
+
+
+
+        return apology('TODO')
+    else:
+
+        return render_template("sell.html", stock_data = stock_data)
+
+
+
 
 
 def errorhandler(e):

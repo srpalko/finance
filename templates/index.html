@@ -15,6 +15,7 @@
             <th>Total Value</th>
         </tr>
         {% for entry in stock_data %}
+        {% if entry.shares > 0 %}
         <tr>
             <td>{{ entry.name }}</td>
             <td>{{ entry.stock_symbol }}</td>
@@ -22,6 +23,7 @@
             <td>{{ entry.usd_price }}</td>
             <td>{{ entry.total }}</td>
         </tr>
+        {% endif %}
         {% endfor %}
     </table>
 

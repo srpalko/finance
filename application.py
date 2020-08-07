@@ -214,18 +214,27 @@ def sell():
     if request.method == "POST":
         stock_to_sell = request.form.get("sell")
         shares_to_sell = request.form.get("shares")
+        this_stock_data = db.execute("SELECT SUM(num_shares) FROM transactions WHERE user_id = :id AND stock_symbol = :symbol", id = session["user_id"], symbol = stock_to_sell.lower())
+        shares_you_have = this_stock_data[0]["SUM(num_shares)"]
         if not stock_to_sell:
             return apology("Please select a stock to sell", 403)
         elif not shares_to_sell or int(shares_to_sell) < 1:
             return apology("Please select the number of shares to sell")
-        return apology("not working yet!", 403)
-
-
-
-
-        return apology('TODO')
+        elif int(shares_to_sell) > int(shares_you_have):
+            return apology("You don't own that many shares!", 403)
+        else:
+            sold_stock = lookup(stock_to_sell)
+            id = session["user_id"]
+            price = 0 - float(sold_stock["price"])
+            shares = 0 - int(shares_to_sell)
+            total_price = shares * (0 - price)
+            symbol = stock_to_sell.lower()
+            cash = db.execute("SELECT cash FROM users WHERE id = :id", id = id)
+            new_cash = float(cash[0]["cash"]) - total_price
+            db.execute("INSERT INTO transactions (user_id, total_price, price, num_shares, stock_symbol) VALUES (:id, :total_price, :price, :shares, :symbol)", id = id, total_price = total_price, price = price, shares = shares, symbol = symbol)
+            db.execute("UPDATE users SET cash = :new_cash WHERE id = :id", new_cash = new_cash, id = id)
+            return redirect("/")
     else:
-
         return render_template("sell.html", stock_data = stock_data)
 
 

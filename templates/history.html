@@ -8,6 +8,7 @@
     <h1>Transaction History</h1>
     <table style="width: 100%;">
         <tr>
+            <th>Transaction Type</th>
             <th>Stock</th>
             <th>Symbol</th>
             <th>Number of Shares</th>
@@ -16,6 +17,11 @@
         </tr>
         {% for entry in transactions %}
         <tr>
+            {% if entry.num_shares < 0 %}
+            <td>Sell</td>
+            {% else %}
+            <td>Buy</td>
+            {% endif %}
             <td>{{ entry.name }}</td>
             <td>{{ entry.stock_symbol }}</td>
             <td>{{ entry.num_shares }}</td>

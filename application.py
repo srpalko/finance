@@ -152,9 +152,11 @@ def login():
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
+        session["username"] = rows[0]["username"]
+        username = session["username"]
 
         # Redirect user to home page
-        flash("Welcome back.")
+        flash(f"Welcome back, {username}.")
         return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -268,6 +270,14 @@ def sell():
             return redirect("/")
     else:
         return render_template("sell.html", stock_data = stock_data)
+
+
+@app.route("/account", methods=["GET", "POST"])
+@login_required
+def account():
+    """Account settings"""
+    user_info = db.execute("SELECT * FROM users WHERE id = :id", id = session["user_id"])
+    return render_template("account.html", username = user_info[0]["username"])
 
 
 

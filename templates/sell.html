@@ -12,7 +12,9 @@
             <select required autofocus class="form-control" name="sell">
                 <optgroup label="stocks">
                 {% for entry in stock_data %}
+                {% if entry.shares > 0 %}
                 <option value="{{ entry.stock_symbol }}">{{ entry.stock_symbol }} ({{ entry.shares }})</option>
+                {% endif %}
                 {% endfor %}
                 </optgroup>
             </select>

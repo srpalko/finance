@@ -55,11 +55,11 @@ def index():
         entry["stock_symbol"] = entry["stock_symbol"].upper()
     cash = db.execute("SELECT cash FROM users WHERE id = :id", id = session["user_id"])
     cash = cash[0]["cash"]
-    port_total = 0
+    portfolio_total = 0
     for entry in stock_data:
         stock_total = entry["price"] * entry["shares"]
-        port_total += stock_total
-    net = cash + port_total
+        portfolio_total += stock_total
+    net = cash + portfolio_total
     return render_template("index.html", stock_data = stock_data, cash = usd(cash), net = usd(net))
 
 
@@ -69,12 +69,18 @@ def buy():
     """Buy shares of stock"""
     if request.method == "POST":
         if not request.form.get("symbol"):
-            return apology("Please enter a stock symbol", 403)
+            #return apology("Please enter a stock symbol", 403)
+            flash("Please enter a stock symbol.")
+            return redirect("/buy")
         quote = lookup(request.form.get("symbol"))
         if quote == None:
-            return apology("That stock does not exist", 403)
+            #return apology("That stock does not exist", 403)
+            flash("That is not a valid stock symbol.")
+            return redirect("/buy")
         if not request.form.get("shares") or int(request.form.get("shares")) < 1:
-            return apology("Please enter the number of shares", 403)
+            #return apology("Please enter the number of shares", 403)
+            flash("Please enter the number of shares that you would like to purchase.")
+            return redirect("/buy")
         else:
             quote = lookup(request.form.get("symbol"))
             session["cash"] = db.execute("SELECT cash FROM users WHERE id = :id", id = session.get("user_id"))
@@ -87,9 +93,12 @@ def buy():
                 db.execute("UPDATE users SET cash = :new_balance WHERE id = :id", new_balance = new_balance, id = session.get(
                 "user_id"))
                 db.execute("INSERT INTO transactions (user_id, total_price, price, num_shares, stock_symbol)VALUES (:id, :total_price, :price, :num_shares, :stock_symbol)", id = session.get("user_id"), total_price = price, price = float(quote["price"]), num_shares = shares, stock_symbol = request.form.get("symbol"))
+                flash("Purchase completed.")
+                return redirect("/")
             else:
-                return apology("Price exceeds account balance", 403)
-            return redirect("/")
+                #return apology("Price exceeds account balance", 403)
+                flash("Insufficient funds.")
+                return redirect("/buy")
     else:
         session["cash"] = db.execute("SELECT cash FROM users WHERE id = :id", id = session.get("user_id"))
         cash = session.get("cash")
@@ -124,11 +133,13 @@ def login():
 
         # Ensure username was submitted
         if not request.form.get("username"):
-            return apology("must provide username", 403)
-
+            #return apology("must provide username", 403)
+            flash("Please enter a username")
+            return redirect("/login")
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return apology("must provide password", 403)
+            flash("Please enter your password.")
+            return redirect("/login")
 
         # Query database for username
         rows = db.execute("SELECT * FROM users WHERE username = :username",
@@ -136,12 +147,14 @@ def login():
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            return apology("invalid username and/or password", 403)
+            flash("Invalid username and/or password.")
+            return redirect("/login")
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
 
         # Redirect user to home page
+        flash("Welcome back.")
         return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -166,10 +179,12 @@ def quote():
     """Get stock quote."""
     if request.method == "POST":
         if not request.form.get("symbol"):
-            return apology("please enter a stock symbol", 403)
+            flash("Please enter a stock symbol")
+            return redirect("/quote")
         else:
             quote = lookup(request.form.get("symbol"))
             if quote == None:
+                flash("Invalid stock symbol")
                 return redirect("/quote")
             else:
                 return render_template("quoted.html", quote = quote)
@@ -183,19 +198,29 @@ def register():
     if request.method == "POST":
         # Check to make sure username is not blank.
         if not request.form.get("username"):
-            return apology("please enter a username", 403)
+            #return apology("please enter a username", 403)
+            flash("Please enter a username")
+            return redirect("/register")
         # Check to make sure that username is not taken.
         elif len(db.execute("SELECT * FROM users WHERE username = :username;", username = request.form.get("username"))) != 0:
-            return apology("username unavailable", 403)
+            #return apology("username unavailable", 403)
+            flash("That username is already taken")
+            return redirect("/register")
         # Check to make sure that password is not blank.
         if not request.form.get("password"):
-            return apology("please enter a password", 403)
+            #return apology("please enter a password", 403)
+            flash("Please enter a password")
+            return redirect("/register")
         # Check to make sure that confirmation of password is not blank.
         if not request.form.get("confirmation"):
-            return apology("please confirm your password", 403)
+            #return apology("please confirm your password", 403)
+            flash("Please confirm your password.")
+            return redirect("/register")
         # Check to make sure that password fields match
         if request.form.get("password") != request.form.get("confirmation"):
-            return apology("passwords do not match", 403)
+            #return apology("passwords do not match", 403)
+            flash("Passwords do not match.")
+            return redirect("/register")
         db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash);", username = request.form.get("username"), hash = generate_password_hash(request.form.get("password")) )
         return redirect("/")
     else:
@@ -217,11 +242,17 @@ def sell():
         this_stock_data = db.execute("SELECT SUM(num_shares) FROM transactions WHERE user_id = :id AND stock_symbol = :symbol", id = session["user_id"], symbol = stock_to_sell.lower())
         shares_you_have = this_stock_data[0]["SUM(num_shares)"]
         if not stock_to_sell:
-            return apology("Please select a stock to sell", 403)
+            #return apology("Please select a stock to sell", 403)
+            flash("Please select a stock.")
+            return redirect("/sell")
         elif not shares_to_sell or int(shares_to_sell) < 1:
-            return apology("Please select the number of shares to sell")
+            #return apology("Please select the number of shares to sell")
+            flash("Please enter the number of shares to sell.")
+            return redirect("/sell")
         elif int(shares_to_sell) > int(shares_you_have):
-            return apology("You don't own that many shares!", 403)
+            #return apology("You don't own that many shares!", 403)
+            flash("You do not own that many shares!")
+            return redirect("/sell")
         else:
             sold_stock = lookup(stock_to_sell)
             id = session["user_id"]
@@ -233,6 +264,7 @@ def sell():
             new_cash = float(cash[0]["cash"]) - total_price
             db.execute("INSERT INTO transactions (user_id, total_price, price, num_shares, stock_symbol) VALUES (:id, :total_price, :price, :shares, :symbol)", id = id, total_price = total_price, price = price, shares = shares, symbol = symbol)
             db.execute("UPDATE users SET cash = :new_cash WHERE id = :id", new_cash = new_cash, id = id)
+            flash("Sale completed.")
             return redirect("/")
     else:
         return render_template("sell.html", stock_data = stock_data)

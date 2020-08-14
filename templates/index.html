@@ -11,6 +11,8 @@
             <th>Stock</th>
             <th>Symbol</th>
             <th>Number of Shares</th>
+            <th>Buy or Sell</th>
+            <th></th>
             <th>Current Price</th>
             <th>Total Value</th>
         </tr>
@@ -20,6 +22,10 @@
             <td>{{ entry.name }}</td>
             <td>{{ entry.stock_symbol }}</td>
             <td>{{ entry.shares }}</td>
+            <form action="/index_transaction" method="post">
+            <td><input type="number" name="index_transaction" style="width: 50px"></td>
+            <td><button class="btn btn-sm" type="submit">Buy/Sell</button></td>
+            </form>
             <td>{{ entry.usd_price }}</td>
             <td>{{ entry.total }}</td>
         </tr>

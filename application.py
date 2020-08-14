@@ -279,6 +279,45 @@ def account():
     user_info = db.execute("SELECT * FROM users WHERE id = :id", id = session["user_id"])
     return render_template("account.html", username = user_info[0]["username"])
 
+@app.route("/password_change", methods=["POST"])
+@login_required
+def password_change():
+    """Change password"""
+    current_password_hash = db.execute("SELECT hash FROM users WHERE id = :id", id = session["user_id"])
+    if not request.form.get("old_password"):
+        flash("Please enter your old password.")
+        return redirect("/account")
+    if not request.form.get("new_password"):
+        flash("Please enter a new password")
+        return redirect("/account")
+    if not request.form.get("check_new_password"):
+        flash("Please confirm your password.")
+        return redirect("/account")
+    if not check_password_hash(current_password_hash[0]["hash"], request.form.get("old_password")):
+        flash("Current password incorrect")
+        return redirect("/account")
+    if request.form.get("new_password") != request.form.get("check_new_password"):
+        flash("New passwords do not match.")
+        return redirect("/account")
+    db.execute("UPDATE users SET hash = :new_hash WHERE id = :id", id = session["user_id"], new_hash = generate_password_hash(request.form.get("new_password")))
+    flash("Password updated")
+    return redirect("/account")
+
+@app.route("/add_funds", methods=["POST"])
+@login_required
+def add_funds():
+    current_funds = db.execute("SELECT cash FROM users WHERE id = :id", id = session["user_id"])
+    added_funds = request.form.get("new_funds")
+    new_funds = float(current_funds[0]["cash"]) + float(added_funds)
+    db.execute("UPDATE users SET cash = :new_cash WHERE id = :id", id = session["user_id"], new_cash = new_funds)
+    flash("{added} added to account. Your new balance is {new}. Long live the Illuminati.".format(added = usd(float(added_funds)), new = usd(float(new_funds))))
+    return redirect("/account")
+
+@app.route("/index_transaction", methods=["POST"])
+@login_required
+
+
+
 
 
 

@@ -5,7 +5,23 @@
 {% endblock %}
 
 {% block main %}
-     <h1>{{username}}</h1>
-
-
+     <h1>User: {{username}}</h1>
+     <div id="account-setting">
+         <h2>Change Password</h2>
+         <form action="/password_change" method="post">
+             <div class="form-group">
+                 <input class="form-control" type="password" name="old_password" placeholder="Old Password">
+                 <input class="form-control" type="password" name="new_password" placeholder="New Password">
+                 <input class="form-control" type="password" name="check_new_password" placeholder="Re-enter new password">
+             </div>
+             <button class="btn btn-primary btn-lg" type="submit" id="change_password">Submit</button>
+         </form><br>
+         <h2>Transfer Secret Offshore Funds to Account</h2>
+         <form action="/add_funds" method="post">
+             <div class="form-group">
+                 <input class="form-control" type="number" name="new_funds" placeholder="$ Amount to add">
+             </div>
+             <button class="btn btn-primary btn-lg" type="submit">Add Secret Funds</button>
+         </form>
+     </div>
 {% endblock %}
